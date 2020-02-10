@@ -129,8 +129,9 @@ sub main()
 
 
   print "\n\#define DATA_SIZE ".$opts{"size"}." \n\n";
-  printArray( "input1_data", \@values1 );
-  printArray( "input2_data", \@values2 );
+  print "typedef double data_t;\n\n";
+  printArray( "in_1", \@values1 );
+  printArray( "in_2", \@values2 );
   printArray( "verify_data", \@sum );
 
 }

@@ -23,8 +23,6 @@
 //--------------------------------------------------------------------------
 // Input/Reference Data
 
-typedef double data_t;
-
 #include "dataset.h"
  
   
@@ -45,19 +43,21 @@ extern void __attribute__((noinline)) vvadd(int coreid, int ncores, size_t n, co
 //
 // all threads start executing thread_entry(). Use their "coreid" to
 // differentiate between threads (each thread is running on a separate core).
+
+#define LOOPS 4
   
 void thread_entry(int cid, int nc)
 {
    // static allocates data in the binary, which is visible to both threads
-	static data_t result_data[DATA_SIZE];
+	static data_t r[LOOPS][DATA_SIZE];
   
-	for (int count = 0; count < 20; count ++){ 
+	for (int c = 0; c < LOOPS; c ++){ 
 		// First do out-of-place vvadd
 		barrier(nc);
-		stats(vvadd(cid, nc, DATA_SIZE, input1_data, input2_data, result_data); barrier(nc), DATA_SIZE);
+		stats(vvadd(cid, nc, DATA_SIZE, in_1, in_2, r[c]); barrier(nc), DATA_SIZE);
  
 		if(cid == 0) {
-			int res = verifyDouble(DATA_SIZE, result_data, verify_data);
+			int res = verifyDouble(DATA_SIZE, r[c], verify_data);
 			if(res) exit(res);
 		}
 
@@ -66,13 +66,13 @@ void thread_entry(int cid, int nc)
 		size_t i;
 		if(cid == 0) {
 			for (i = 0; i < DATA_SIZE; i++)
-				result_data[i] = input1_data[i];
+				r[c][i] = in_1[i];
 		}
 		barrier(nc);
-		stats(vvadd(cid, nc, DATA_SIZE, result_data, input2_data, result_data); barrier(nc), DATA_SIZE);
+		stats(vvadd(cid, nc, DATA_SIZE, r[c], in_2, r[c]); barrier(nc), DATA_SIZE);
  
    		if(cid == 0) {
-			int res = verifyDouble(DATA_SIZE, result_data, verify_data);
+			int res = verifyDouble(DATA_SIZE, r[c], verify_data);
 			if(res) exit(res);
 		}
 	}  
